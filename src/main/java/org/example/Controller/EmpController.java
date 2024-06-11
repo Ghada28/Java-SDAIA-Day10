@@ -1,14 +1,15 @@
 package org.example.Controller;
 
+import jakarta.inject.Inject;
 import jakarta.ws.rs.*;
 import jakarta.ws.rs.core.*;
 import org.example.dao.EmployeeDAO;
+import org.example.dao.JobDAO;
 import org.example.dto.EmployeeDto;
 import org.example.dto.EmployeeFilterDto;
-
+import org.example.exceptions.DataNotFoundException;
+import org.example.mappers.EmployeeMapper;
 import org.example.models.Employee;
-
-
 import java.net.URI;
 import java.sql.SQLException;
 import java.util.ArrayList;
@@ -17,11 +18,15 @@ import java.util.ArrayList;
 public class EmpController {
 
     EmployeeDAO dao = new EmployeeDAO();
+    JobDAO jobDAO = new JobDAO();
     @Context UriInfo uriInfo;
     @Context HttpHeaders headers;
 
+    @Inject
+    EmployeeMapper mapper;
+
     @GET
-    @Produces({MediaType.APPLICATION_XML, MediaType.APPLICATION_JSON})
+    @Produces({MediaType.APPLICATION_XML, MediaType.APPLICATION_JSON,"text/csv"})
     public Response getAllEmployee(
             @BeanParam EmployeeFilterDto filter
     ) {
@@ -33,7 +38,18 @@ public class EmpController {
                         .ok(emps)
                         .type(MediaType.APPLICATION_XML)
                         .build();
+
+                //  return dao.selectAllJobs(minsal, limit, offset);
+                //return dao.selectAllEmps(filter);
+                //return dao.selectAllEmps();
             }
+            else if(headers.getAcceptableMediaTypes().contains(MediaType.valueOf("text/csv"))) {
+                return Response
+                        .ok(emps)
+                        .type("text/csv")
+                        .build();
+            }
+
             return Response
                     .ok(emps, MediaType.APPLICATION_JSON)
                     .build();
@@ -44,11 +60,20 @@ public class EmpController {
 
     @GET
     @Path("{employee_id}")
+    @Produces({MediaType.APPLICATION_JSON, MediaType.APPLICATION_XML, "text/csv"} )
     public Response getEmployee(
-            @PathParam("employee_id") int employee_id) {
+            @PathParam("employee_id") int employee_id) throws SQLException{
 
         try {
-            Employee emps = dao.selectEmp(employee_id);
+            Employee emps = dao.selectEmpJoinJob(employee_id);
+            EmployeeDto dto = mapper.toEmpDto(emps);
+
+
+            if (emps == null) {
+                throw new DataNotFoundException("Employee " + employee_id + " Not found");
+
+            }
+
             if(headers.getAcceptableMediaTypes().contains(MediaType.valueOf(MediaType.APPLICATION_XML))) {
                 return Response
                         .ok(emps)
@@ -56,37 +81,53 @@ public class EmpController {
                         .build();
             } // return dao.selectEmp(employee_id);
 
-            EmployeeDto dto = new EmployeeDto();
-            dto.setEmployee_id(emps.getEmployee_id());
-            dto.setFirst_name(emps.getFirst_name());
-            dto.setLast_name(emps.getLast_name());
-            dto.setEmail(emps.getEmail());
-            dto.setNumber(emps.getNumber());
-            dto.setHire_date(emps.getHire_date());
-            dto.setJob_id(emps.getJob_id());
-            dto.setSalary(emps.getSalary());
-            dto.setManager_id(emps.getManager_id());
-            dto.setDepartment_id(emps.getDepartment_id());
+//                EmployeeDto dto = new EmployeeDto();
+//                dto.setEmployee_id(emps.getEmployee_id());
+//                dto.setFirst_name(emps.getFirst_name());
+//                dto.setLast_name(emps.getLast_name());
+//                dto.setEmail(emps.getEmail());
+//                dto.setNumber(emps.getNumber());
+//                dto.setHire_date(emps.getHire_date());
+//                dto.setJob_id(emps.getJob_id());
+//                dto.setSalary(emps.getSalary());
+//                dto.setManager_id(emps.getManager_id());
+//                dto.setDepartment_id(emps.getDepartment_id());
+            // EmployeeDto dto = EmployeeMapper.INSTANCE.toEmpDto(emps);
+
             addLinks(dto);
+
             return Response.ok(dto).build();
-        } catch (Exception e) {
+        }
+        catch (ClassNotFoundException e) {
             throw new RuntimeException(e);
         }
     }
+
+
+
     private void addLinks (EmployeeDto dto){
         URI selfUri = uriInfo.getAbsolutePath();
         URI empsUri = uriInfo.getAbsolutePathBuilder().path(EmpController.class).build();
 
         dto.addLink(selfUri.toString(), "self");
-        dto.addLink(empsUri.toString(),"employees");
+        dto.addLink(empsUri.toString(),"jobs");
     }
 
     @DELETE
     @Path("{employee_id}")
-    public void deleteEmployee(@PathParam("employee_id") int employee_id) {
+    public Response deleteEmployee(
+            @PathParam("employee_id") int employee_id) {
 
         try {
             dao.deleteEmp(employee_id);
+            if(headers.getAcceptableMediaTypes().contains(MediaType.valueOf(MediaType.APPLICATION_XML))) {
+                return Response
+                        .ok()
+                        .type(MediaType.APPLICATION_XML)
+                        .build();
+//
+            }
+            return Response.ok().build();
         } catch (Exception e) {
             throw new RuntimeException(e);
         }
@@ -103,7 +144,7 @@ public class EmpController {
             return Response
                     .created(uri)
                     .cookie(cookie)
-                    .header("Created by", "Wael")
+                    .header("Created by", "Ragad Alghanim")
                     .build();
             // dao.insertEmp(emps);
         } catch (Exception e) {
@@ -113,11 +154,21 @@ public class EmpController {
 
     @PUT
     @Path("{employee_id}")
-    public void updateEmployee(@PathParam("employee_id") int employee_id, Employee emps) {
+    @Produces({MediaType.APPLICATION_JSON, MediaType.APPLICATION_XML, "text/csv"})
+    public Response updateEmployee(
+            @PathParam("employee_id") int employee_id, Employee emps) {
 
         try {
             emps.setEmployee_id(employee_id);
             dao.updateEmp(emps);
+            if(headers.getAcceptableMediaTypes().contains(MediaType.valueOf(MediaType.APPLICATION_XML))) {
+                return Response
+                        .ok(emps)
+                        .type(MediaType.APPLICATION_XML)
+                        .build();
+//
+            }
+            return Response.ok(emps).build();
         } catch (Exception e) {
             throw new RuntimeException(e);
         }

@@ -8,6 +8,9 @@ public class EmployeeFilterDto {
     @QueryParam("limit") Integer limit;
     @QueryParam("offset") int offset;
 
+    @QueryParam("hireDate") String hireDate;
+    @QueryParam("jobId") Integer jobId;
+
     public Integer getDepId() {
         return depId;
     }
@@ -30,5 +33,21 @@ public class EmployeeFilterDto {
 
     public void setOffset(int offset) {
         this.offset = offset;
+    }
+
+    public String getHireDate() {
+        return hireDate;
+    }
+
+    public Integer getJobId() {
+        return jobId;
+    }
+
+    public void setJobId(Integer jobId) {
+        this.jobId = jobId;
+    }
+
+    public void setHireDate(String hireDate) {
+        this.hireDate = hireDate;
     }
 }

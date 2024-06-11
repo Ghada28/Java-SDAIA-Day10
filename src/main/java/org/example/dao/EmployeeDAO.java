@@ -1,5 +1,4 @@
 package org.example.dao;
-
 import org.example.dto.EmployeeFilterDto;
 import  org.example.models.Employee;
 
@@ -12,12 +11,16 @@ public class EmployeeDAO {
     private static final   String URL = "jdbc:sqlite:C:\\Users\\dev\\IdeaProjects\\untitled9\\src\\main\\java\\HW4\\hr.db";
     private static final String INSERT_EMP = "insert into employees values (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)";
     private static final String SELECT_ONE_EMP = "select * from employees where employee_id = ?";
+    private static final String SELECT_EMP_WITH_DATE = "select * from employees where hire_date = ?";
+    private static final String SELECT_EMP_WITH_JOB = "select * from employees where job_id = ?";
     private static final String SELECT_EMP_WITH_DEP = "select * from employees where department_id = ?";
     private static final String SELECT_EMP_WITH_DEP_PAGINATION = "select * from employees where department_id = ? order by employee_id limit ? offset ?";
     private static final String SELECT_EMP_WITH_PAGINATION = "select * from employees order by employee_id limit ? offset ?";
     private static final String SELECT_ALL_EMPS = "select * from employees";
     private static final String UPDATE_EMP = "update employees set email = ?, salary = ? where employee_id = ?";
     private static final String DELETE_EMP = "delete from employees where employee_id = ?";
+    private static final String SELECT_ONE_EMP_JOIN_JOBS = "select * from employees join jobs on employees.job_id = jobs.job_id where employee_id = ?";
+
 
 
     public void insertEmp(Employee e) throws SQLException, ClassNotFoundException {
@@ -53,7 +56,7 @@ public class EmployeeDAO {
         PreparedStatement st = conn.prepareStatement(DELETE_EMP);
         st.setInt(1, employee_id);
         st.executeUpdate();
-    }
+    }//
 
     public Employee selectEmp(int employee_id) throws SQLException, ClassNotFoundException {
         Class.forName("org.sqlite.JDBC");
@@ -69,7 +72,21 @@ public class EmployeeDAO {
         }
     }
 
-    public ArrayList<Employee> selectAllEmps(Integer depId, Integer limit, int offset) throws SQLException, ClassNotFoundException {
+    public Employee selectEmpJoinJob(int employee_id) throws SQLException, ClassNotFoundException {
+        Class.forName("org.sqlite.JDBC");
+        Connection conn = DriverManager.getConnection(URL);
+        PreparedStatement st = conn.prepareStatement(SELECT_ONE_EMP_JOIN_JOBS);
+        st.setInt(1, employee_id);
+        ResultSet rs = st.executeQuery();
+        if(rs.next()) {
+            return new Employee(rs);
+        }
+        else {
+            return null;
+        }
+    }
+
+    public ArrayList<Employee> selectAllEmps(Integer depId, Integer limit, int offset,String hireDate, Integer jobId) throws SQLException, ClassNotFoundException {
         Class.forName("org.sqlite.JDBC");
         Connection conn = DriverManager.getConnection(URL);
         PreparedStatement st;
@@ -87,6 +104,13 @@ public class EmployeeDAO {
             st = conn.prepareStatement(SELECT_EMP_WITH_PAGINATION);
             st.setInt(1, limit);
             st.setInt(2, offset);
+        }else if(hireDate != null) {
+            st = conn.prepareStatement(SELECT_EMP_WITH_DATE);
+            st.setString(1, hireDate);
+        }
+        else if(jobId != null) {
+            st = conn.prepareStatement(SELECT_EMP_WITH_JOB);
+            st.setInt(1, jobId);
         }
         else {
             st = conn.prepareStatement(SELECT_ALL_EMPS);
@@ -109,6 +133,7 @@ public class EmployeeDAO {
             st.setInt(1, filter.getDepId());
             st.setInt(2, filter.getLimit());
             st.setInt(3, filter.getOffset());
+
         }
         else if(filter.getDepId() != null) {
             st = conn.prepareStatement(SELECT_EMP_WITH_DEP);
@@ -118,8 +143,13 @@ public class EmployeeDAO {
             st = conn.prepareStatement(SELECT_EMP_WITH_PAGINATION);
             st.setInt(1, filter.getLimit());
             st.setInt(2, filter.getOffset());
-        }
-        else {
+        } else if(filter.getHireDate() != null) {
+            st = conn.prepareStatement(SELECT_EMP_WITH_DATE);
+            st.setString(1, filter.getHireDate());
+        }else if(filter.getJobId() != null) {
+            st = conn.prepareStatement(SELECT_EMP_WITH_JOB);
+            st.setInt(1, filter.getJobId());
+        }else {
             st = conn.prepareStatement(SELECT_ALL_EMPS);
         }
         ResultSet rs = st.executeQuery();

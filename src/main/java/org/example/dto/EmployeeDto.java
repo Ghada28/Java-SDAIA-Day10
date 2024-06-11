@@ -3,9 +3,11 @@ package org.example.dto;
 import jakarta.xml.bind.annotation.XmlElement;
 import jakarta.xml.bind.annotation.XmlElementWrapper;
 import jakarta.xml.bind.annotation.XmlRootElement;
+
 import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.util.ArrayList;
+
 @XmlRootElement
 public class EmployeeDto {
     private int employee_id;
@@ -18,11 +20,13 @@ public class EmployeeDto {
     private double salary;
     private int manager_id;
     private int department_id;
+
+    private JobDto job_Dto;
+
     private ArrayList<LinkDto> links = new ArrayList<>();
+
     public EmployeeDto() {
     }
-
-
 
     public EmployeeDto(int employee_id, String first_name, String last_name, String email, String phone_number, String hire_date, int job_id, double salary, int manager_id, int department_id) {
         this.employee_id = employee_id;
@@ -117,6 +121,13 @@ public class EmployeeDto {
         this.department_id = department_id;
     }
 
+    public JobDto getJob_Dto() {
+        return job_Dto;
+    }
+
+    public void setJob_Dto(JobDto job_Dto) {
+        this.job_Dto = job_Dto;
+    }
 
     @XmlElementWrapper
     @XmlElement(name = "link")
