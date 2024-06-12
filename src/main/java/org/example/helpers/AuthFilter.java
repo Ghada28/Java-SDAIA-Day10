@@ -31,7 +31,7 @@ public class AuthFilter implements ContainerRequestFilter {
             String password = tokenizer.nextToken();
 
             try {
-                if (empdao.selectEmpLastName(username) != null && password.equals("admin")) {
+                if (empdao.selectEmployeesByFirstName(username) != null && password.equals("admin")) {
                     return;
                 }
             } catch (SQLException e) {

@@ -160,6 +160,20 @@ public class EmployeeDAO {
 
         return emps;
     }
+    public ArrayList<Employee> selectEmployeesByFirstName(String first_name) throws ClassNotFoundException, SQLException {
+        Class.forName("org.sqlite.JDBC");
+        Connection conn = DriverManager.getConnection(URL);
+        String query = "SELECT * FROM employees WHERE first_name =?";
+        PreparedStatement st = conn.prepareStatement(query);
+        st.setString(1, first_name);
+        ResultSet rs = st.executeQuery();
 
+        ArrayList<Employee> employees = new ArrayList<>();
+        while (rs.next()) {
+            employees.add(new Employee(rs));
+        }
+
+        return employees;
+    }
 
 }

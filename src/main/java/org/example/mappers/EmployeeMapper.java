@@ -13,7 +13,7 @@ import org.mapstruct.factory.Mappers;
 public interface EmployeeMapper {
     // EmployeeMapper INSTANCE = Mappers.getMapper(EmployeeMapper.class);
 
-    @Mapping(source = "jobb", target = "job_Dto")
+
     EmployeeDto toEmpDto(Employee e);
 
     @Mapping(source = "e.job_id", target = "job_id")
@@ -21,7 +21,5 @@ public interface EmployeeMapper {
 
 
 
-    // EmployeeDto toEmpDto(job j);
-    @Mapping(target = "jobb", source = "job_Dto")
     Employee toModel(EmployeeDto dto);
 }
