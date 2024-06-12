@@ -11,7 +11,7 @@ import org.mapstruct.factory.Mappers;
 
 @Mapper(uses = {JobMapper.class},componentModel = "cdi",imports = {java.util.UUID.class})
 public interface EmployeeMapper {
-    // EmployeeMapper INSTANCE = Mappers.getMapper(EmployeeMapper.class);
+
 
 
     EmployeeDto toEmpDto(Employee e);
